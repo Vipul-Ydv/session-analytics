@@ -1,6 +1,6 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
-import { createApp } from "../src/app.js";
+import { createApp } from "../src/create-app.js";
 import { EventModel } from "../src/models/event.js";
 import { useTestDb } from "./helpers.js";
 
@@ -73,6 +73,8 @@ describe("POST /api/events", () => {
     ["click without coordinates", { ...click, x: undefined }],
     ["negative coordinates", { ...click, y: -5 }],
     ["bad timestamp", { ...pageView, timestamp: "yesterday" }],
+    ["timestamp more than a day in the future", { ...pageView, timestamp: "9999-01-01T00:00:00Z" }],
+    ["timestamp before 2020", { ...pageView, timestamp: 1 }],
   ])("rejects %s with 400 and stores nothing", async (_label, body) => {
     const res = await request(app).post("/api/events").send(body);
     expect(res.status).toBe(400);
@@ -83,6 +85,12 @@ describe("POST /api/events", () => {
   it("rejects malformed text/plain bodies", async () => {
     const res = await request(app).post("/api/events").set("Content-Type", "text/plain").send("{not json");
     expect(res.status).toBe(400);
+  });
+
+  it("explains an oversized body instead of saying only 'Bad request'", async () => {
+    const res = await request(app).post("/api/events").set("Content-Type", "text/plain").send("x".repeat(250_000));
+    expect(res.status).toBe(413);
+    expect(res.body.error).toMatch(/too large/i);
   });
 
   it("rejects batches over 100 events", async () => {

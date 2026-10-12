@@ -158,7 +158,7 @@ function HeatmapView() {
           <div className="min-w-0">
             {heat.error && <ErrorNote message={heat.error} onRetry={heat.reload} />}
             {heat.loading && !heat.data && <Loading what="clicks" />}
-            {heat.data && <Preview pageUrl={heat.data.page_url} clicks={heat.data.clicks} mode={mode} />}
+            {heat.data && <Preview key={heat.data.page_url} pageUrl={heat.data.page_url} clicks={heat.data.clicks} mode={mode} />}
           </div>
         </div>
       )}

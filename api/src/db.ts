@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { EventModel } from "./models/event.js";
 
 let connecting: Promise<typeof mongoose> | null = null;
 
@@ -13,7 +14,8 @@ export function connectDb(uri = process.env.MONGODB_URI): Promise<typeof mongoos
     connecting = mongoose
       .connect(uri, { serverSelectionTimeoutMS: 8000, maxPoolSize: 5 })
       .then(async (m) => {
-        await m.connection.syncIndexes();
+        // Creates missing indexes only (never drops any); a no-op once they exist.
+        await EventModel.createIndexes();
         return m;
       })
       .catch((err) => {

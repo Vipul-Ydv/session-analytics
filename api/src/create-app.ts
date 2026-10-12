@@ -35,9 +35,14 @@ export function createApp(options: AppOptions = {}) {
 
   // Always answer with JSON; never leave a serverless function in a broken state.
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
-    const status = typeof err === "object" && err !== null && "status" in err ? Number((err as { status: number }).status) : 500;
-    if (status >= 500) console.error(err);
-    res.status(status >= 400 && status < 600 ? status : 500).json({ error: status >= 500 ? "Internal server error" : "Bad request" });
+    const raw = typeof err === "object" && err !== null && "status" in err ? Number((err as { status: number }).status) : 500;
+    const status = raw >= 400 && raw < 600 ? raw : 500;
+    if (status >= 500) {
+      console.error(err);
+      return res.status(status).json({ error: "Internal server error" });
+    }
+    const messages: Record<number, string> = { 400: "Body is not valid JSON", 413: "Request body is too large (limit 200 KB)" };
+    return res.status(status).json({ error: messages[status] ?? "Bad request" });
   });
 
   return app;

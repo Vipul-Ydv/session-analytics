@@ -21,10 +21,15 @@ const pageUrl = z
   }, "page_url must be an absolute http(s) URL")
   .transform(normalizePageUrl);
 
+const EARLIEST = Date.UTC(2020, 0, 1);
+const MAX_CLOCK_SKEW_MS = 24 * 3600 * 1000;
+
 const timestamp = z
   .union([z.string(), z.number()])
   .transform((v) => new Date(v))
-  .refine((d) => !Number.isNaN(d.getTime()), "timestamp must be an ISO date or epoch milliseconds");
+  .refine((d) => !Number.isNaN(d.getTime()), "timestamp must be an ISO date or epoch milliseconds")
+  // Client clocks are trusted only within sane bounds, so one bad clock can't pin a session to the top forever.
+  .refine((d) => d.getTime() >= EARLIEST && d.getTime() <= Date.now() + MAX_CLOCK_SKEW_MS, "timestamp is too far in the past or future");
 
 const common = {
   session_id: z.string().trim().min(1).max(128),
@@ -32,7 +37,7 @@ const common = {
   timestamp,
 };
 
-const px = z.number().finite().nonnegative();
+const px = z.number().finite().nonnegative().max(100_000);
 
 const pageViewEvent = z.object({ ...common, type: z.literal("page_view") });
 

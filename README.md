@@ -97,7 +97,7 @@ The dashboard loads the page itself in a scaled-down iframe and draws clicks on 
 
 ## Run it locally
 
-Requires Node.js 20+.
+Requires Node.js 22+. The first `npm test` or `npm run dev:memory` in `api/` downloads a MongoDB binary once (a few hundred MB) for the in-memory database.
 
 ```bash
 # 1. API (in-memory MongoDB, no setup needed; data is lost on restart)
@@ -118,8 +118,10 @@ To use a real database, put `MONGODB_URI=...` in `api/.env` and run `npm run dev
 
 ```bash
 cd api
-SITE_URL=http://localhost:3001 npm run seed     # add -- --reset to clear existing events first
+SITE_URL=http://localhost:3001 npm run seed     # macOS/Linux; add -- --reset to clear existing events first
 ```
+
+On Windows PowerShell: `$env:SITE_URL="http://localhost:3001"; npm run seed`
 
 ### Tests
 
@@ -142,7 +144,8 @@ cd dashboard && npm test   # heatmap placement and formatting
 - **Page identity ignores query strings and hashes.** This keeps heatmaps from splitting into many URLs, but it merges pages that differ only by query (for example `?product=1` vs `?product=2`).
 - **Heatmap accuracy across screen sizes.** Responsive layouts reflow, so clicks from a width different from the preview width are approximate. Splitting heatmaps by device class (mobile, tablet, desktop) would fix this.
 - **Click coordinates, not elements.** Storing a CSS selector for the clicked element would make heatmaps robust to layout changes.
+- **Client timestamps are used as sent**, within sane bounds: events dated before 2020 or more than 24 hours in the future are rejected, so a bad clock can't distort the sessions list. A stricter version would use server receive time for ordering.
 - **Delivery is best-effort.** If the browser is killed before a batch is sent, the last few events can be lost, and there's no de-duplication of retried batches.
 - **Single collection, no aggregation cache.** The sessions list is computed on each request. At scale I'd pre-aggregate sessions (or maintain a `sessions` collection updated on insert), add TTL-based retention, and put a queue (for example Kafka or SQS) in front of the database writes.
 - **Serverless MongoDB connections.** The API caches one connection per warm function instance. Atlas M0 allows 500 connections, which is plenty here.
-- **Limits:** batches up to 100 events, request bodies up to 200 KB, heatmaps up to 5,000 clicks, journeys up to 10,000 events.
+- **Limits:** batches up to 100 events, request bodies up to 200 KB, coordinates up to 100,000 px, heatmaps up to 5,000 clicks, journeys up to 10,000 events.

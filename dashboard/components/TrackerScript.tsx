@@ -16,6 +16,11 @@ export function TrackerScript() {
     s.setAttribute("data-endpoint", `${API_URL}/api/events`);
     s.setAttribute("data-cf-tracker", "");
     document.head.appendChild(s);
+    // Leaving the demo shop for the dashboard is a client-side navigation, so stop tracking explicitly.
+    return () => {
+      (window as unknown as { cfTracker?: { destroy(): void } }).cfTracker?.destroy();
+      s.remove();
+    };
   }, []);
   return null;
 }

@@ -1,4 +1,4 @@
-import { createApp } from "./app.js";
+import { createApp } from "./create-app.js";
 import { connectDb } from "./db.js";
 
 // Vercel's Express integration uses this default export as a single serverless function.
