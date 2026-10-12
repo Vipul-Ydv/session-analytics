@@ -24,3 +24,26 @@ export function toHeatPoint(click: ClickPoint, preview: Size): { left: number; t
   const top = h ? (click.y / h) * preview.height : click.y;
   return { left: Math.round(clamp(left, preview.width)), top: Math.round(clamp(top, preview.height)) };
 }
+
+const DEFAULT_WIDTH = 1280;
+
+/**
+ * The page width most clicks were recorded at. The preview renders the page at this width, so the
+ * most common visitors' clicks land exactly on the elements they hit; other widths are scaled.
+ */
+export function typicalWidth(clicks: ClickPoint[]): number {
+  const counts = new Map<number, number>();
+  for (const c of clicks) {
+    const w = Math.round(c.page_w || c.viewport_w || 0);
+    if (w > 0) counts.set(w, (counts.get(w) ?? 0) + 1);
+  }
+  let best = DEFAULT_WIDTH;
+  let bestCount = 0;
+  for (const [w, n] of counts) {
+    if (n > bestCount) {
+      best = w;
+      bestCount = n;
+    }
+  }
+  return Math.min(1920, Math.max(320, best));
+}

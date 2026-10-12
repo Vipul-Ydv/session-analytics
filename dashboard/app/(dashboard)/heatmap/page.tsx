@@ -6,9 +6,8 @@ import { ErrorNote, Loading } from "@/components/States";
 import { useApi } from "@/components/useApi";
 import { api, type HeatmapClick } from "@/lib/api";
 import { pathOf } from "@/lib/format";
+import { typicalWidth } from "@/lib/heatmap";
 
-/** Pages are previewed at a desktop width, then scaled down to fit. */
-const RENDER_WIDTH = 1280;
 
 function useWidth<T extends HTMLElement>() {
   const ref = useRef<T>(null);
@@ -24,20 +23,22 @@ function useWidth<T extends HTMLElement>() {
 }
 
 /** Typical recorded page height (median), used when the page can't be previewed live. */
-function medianPageHeight(clicks: HeatmapClick[]): number {
+function medianPageHeight(clicks: HeatmapClick[], renderWidth: number): number {
   const hs = clicks
-    .map((c) => (c.page_h && c.page_w ? (c.page_h / c.page_w) * RENDER_WIDTH : 0))
+    .map((c) => (c.page_h && c.page_w ? (c.page_h / c.page_w) * renderWidth : 0))
     .filter((h) => h > 0)
     .sort((a, b) => a - b);
-  return hs.length ? hs[Math.floor(hs.length / 2)] : RENDER_WIDTH * 0.75;
+  return hs.length ? hs[Math.floor(hs.length / 2)] : renderWidth * 0.75;
 }
 
 function Preview({ pageUrl, clicks, mode }: { pageUrl: string; clicks: HeatmapClick[]; mode: "heat" | "dots" }) {
   const { ref, width } = useWidth<HTMLDivElement>();
   const [docHeight, setDocHeight] = useState<number | null>(null);
   const sameOrigin = typeof window !== "undefined" && new URL(pageUrl).origin === window.location.origin;
-  const scale = width / RENDER_WIDTH;
-  const fullHeight = docHeight ?? medianPageHeight(clicks);
+  // Render the page at the width most visitors had, then scale it down to fit the panel.
+  const renderWidth = typicalWidth(clicks);
+  const scale = width / renderWidth;
+  const fullHeight = docHeight ?? medianPageHeight(clicks, renderWidth);
   const height = Math.round(fullHeight * scale);
 
   return (
@@ -46,12 +47,12 @@ function Preview({ pageUrl, clicks, mode }: { pageUrl: string; clicks: HeatmapCl
         <div className="relative overflow-hidden rounded-lg border border-line bg-surface" style={{ height }}>
           {sameOrigin ? (
             <iframe
-              key={pageUrl}
+              key={`${pageUrl}@${renderWidth}`}
               src={pageUrl}
               title={`Preview of ${pathOf(pageUrl)}`}
               tabIndex={-1}
               className="pointer-events-none absolute left-0 top-0 origin-top-left border-0"
-              style={{ width: RENDER_WIDTH, height: fullHeight, transform: `scale(${scale})` }}
+              style={{ width: renderWidth, height: fullHeight, transform: `scale(${scale})` }}
               onLoad={(e) => {
                 const doc = e.currentTarget.contentDocument;
                 if (doc) setDocHeight(Math.max(doc.documentElement.scrollHeight, 400));
@@ -140,7 +141,8 @@ function HeatmapView() {
             {heat.data && (
               <p className="text-sm text-muted">
                 {heat.data.clicks.length} clicks on <span className="break-all text-ink">{pathOf(heat.data.page_url)}</span>
-                {heat.data.truncated ? ". Showing the first 5,000." : "."}
+                {heat.data.truncated ? ". Showing the first 5,000." : "."} Previewed at {typicalWidth(heat.data.clicks)} px wide, the
+                most common screen width for this page.
               </p>
             )}
             {mode === "heat" && (

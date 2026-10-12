@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toHeatPoint } from "@/lib/heatmap";
+import { toHeatPoint, typicalWidth } from "@/lib/heatmap";
 import { formatOffset, formatDuration, shortId } from "@/lib/format";
 
 describe("toHeatPoint", () => {
@@ -40,5 +40,19 @@ describe("format helpers", () => {
   it("shortens session ids for display", () => {
     expect(shortId("0f8e2a6c-1b2d-4e3f-9a8b-7c6d5e4f3a2b")).toBe("0f8e2a6c");
     expect(shortId("short")).toBe("short");
+  });
+});
+
+describe("typicalWidth", () => {
+  it("picks the page width most clicks were recorded at", () => {
+    const at = (page_w: number) => ({ x: 1, y: 1, page_w });
+    expect(typicalWidth([at(1024), at(1440), at(1024), at(390)])).toBe(1024);
+  });
+  it("falls back to viewport width, then to 1280, and stays within 320-1920", () => {
+    expect(typicalWidth([{ x: 1, y: 1, viewport_w: 800 }])).toBe(800);
+    expect(typicalWidth([{ x: 1, y: 1 }])).toBe(1280);
+    expect(typicalWidth([])).toBe(1280);
+    expect(typicalWidth([{ x: 1, y: 1, page_w: 4000 }])).toBe(1920);
+    expect(typicalWidth([{ x: 1, y: 1, page_w: 200 }])).toBe(320);
   });
 });
