@@ -1,6 +1,4 @@
-# CausalFunnel Analytics: design and build plan
-
-Approved in chat on 2026-10-12. Deadline: submit by 2026-10-15 09:30 IST.
+# Design and build plan
 
 ## Goal
 A small full-stack app that tracks `page_view` and `click` events on a webpage and shows them in a dashboard (sessions, user journeys, click heatmap), per the CausalFunnel Full Stack Engineer assignment.
