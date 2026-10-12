@@ -1,6 +1,7 @@
 import cors from "cors";
 import express, { type NextFunction, type Request, type Response } from "express";
 import { eventsRouter } from "./routes/events.js";
+import { readRouter } from "./routes/read.js";
 
 type AppOptions = {
   /** Runs before every API request, e.g. to open the database connection on a cold start. */
@@ -26,6 +27,7 @@ export function createApp(options: AppOptions = {}) {
     res.json({ ok: true });
   });
   app.use("/api/events", eventsRouter);
+  app.use("/api", readRouter);
 
   app.use("/api", (_req, res) => {
     res.status(404).json({ error: "Not found" });
