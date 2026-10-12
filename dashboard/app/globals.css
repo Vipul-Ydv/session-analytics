@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+/* Signal desk: cool slate ground, deep navy ink, one teal accent. Heat colours appear only in the heatmap. */
+@theme {
+  --color-ground: #f1f4f8;
+  --color-surface: #ffffff;
+  --color-ink: #12233b;
+  --color-muted: #5a6b82;
+  --color-line: #dbe2ea;
+  --color-accent: #0e7c8b;
+  --color-accent-soft: #dff1f3;
+  --color-click: #d9480f;
+  --font-sans: var(--font-plex-sans), system-ui, "Segoe UI", sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-ground: #0d1520;
+    --color-surface: #142030;
+    --color-ink: #e5ecf4;
+    --color-muted: #94a4b9;
+    --color-line: #233246;
+    --color-accent: #4cc3d1;
+    --color-accent-soft: #15333b;
+    --color-click: #ff8a4c;
+    color-scheme: dark;
+  }
+}
+
+body {
+  background: var(--color-ground);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
