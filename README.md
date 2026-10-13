@@ -4,9 +4,9 @@ A small full-stack app that tracks how people use a webpage and shows it in a da
 
 Built for the CausalFunnel Full Stack Engineer assignment.
 
-- **Dashboard:** `<DASHBOARD_URL>`
-- **Demo shop (generates real data as you click):** `<DASHBOARD_URL>/demo`
-- **API:** `<API_URL>/api/health`
+- **Dashboard:** https://session-analytics-tau.vercel.app
+- **Demo shop (generates real data as you click):** https://session-analytics-tau.vercel.app/demo
+- **API:** https://session-analytics-api.vercel.app/api/health (tracker: https://session-analytics-api.vercel.app/tracker.js)
 
 ## What it does
 
